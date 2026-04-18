@@ -23,7 +23,7 @@ export default function Page() {
 
       {hasMessages ? (
         <>
-          <MessageList messages={messages} isThinking={isThinking} />
+          <MessageList messages={messages} />
           <ChatInput onSend={sendMessage} disabled={isThinking} />
         </>
       ) : (
