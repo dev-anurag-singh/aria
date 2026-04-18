@@ -22,10 +22,14 @@ export default function Page() {
       <Header />
 
       {hasMessages ? (
-        <>
-          <MessageList messages={messages} />
-          <ChatInput onSend={sendMessage} disabled={isThinking} />
-        </>
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="pt-20 pb-6">
+            <MessageList messages={messages} />
+          </div>
+          <div className="sticky bottom-0 backdrop-blur-xl">
+            <ChatInput onSend={sendMessage} disabled={isThinking} />
+          </div>
+        </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center w-full">
           <EmptyState />
