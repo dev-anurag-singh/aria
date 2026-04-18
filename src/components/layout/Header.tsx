@@ -5,11 +5,15 @@ import { Moon, Sun } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 
-export function Header() {
+interface HeaderProps {
+  scrolled?: boolean;
+}
+
+export function Header({ scrolled }: HeaderProps) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4">
+    <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 transition-[backdrop-filter,background-color] duration-300 ${scrolled ? "backdrop-blur-xl bg-white/30 dark:bg-black/20 border-b border-white/20 dark:border-white/10" : ""}`}>
       <motion.span
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
