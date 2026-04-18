@@ -3,47 +3,78 @@
 import { useState, useCallback } from 'react'
 import type { Message } from '@/types/chat'
 
-// Placeholder responses until backend is connected
-const MOCK_RESPONSES = [
-  "That's a great question. Once I'm connected to the AI backend, I'll be able to give you a thoughtful and accurate response.",
-  "Interesting! I'm running in demo mode right now — the real AI integration will handle this properly.",
-  "I understand what you mean. The full version will process your message and respond intelligently in real time.",
-  "Good point. When the backend is live, I'll be able to reason through this and give you something genuinely useful.",
-]
+const MOCK_RESPONSE = `
+## Understanding React Server Components
+
+React Server Components (RSC) let you render components entirely on the server, shipping **zero JavaScript** to the client for those components.
+
+### Key Benefits
+
+- **Performance** — only interactive parts send JS to the browser
+- **Direct data access** — query your database without an API layer
+- **Smaller bundles** — server components are never included in the client bundle
+
+### Quick Example
+
+\`\`\`tsx
+async function UserProfile({ userId }: { userId: string }) {
+  const user = await db.users.findById(userId)
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  )
+}
+\`\`\`
+
+Mark a file with \`'use client'\` only when you need **state**, **effects**, or browser APIs. Everything else stays on the server by default.
+
+> This is a placeholder response — real answers will come from the AI backend once connected.
+`
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
-  const [isThinking, setIsThinking] = useState(false)
 
-  const sendMessage = useCallback(
-    (content: string) => {
-      if (!content.trim() || isThinking) return
+  // Derived — no separate isThinking state needed
+  const isThinking = messages.some(m => m.role === 'assistant' && m.thinking)
 
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        content: content.trim(),
-        timestamp: new Date(),
-      }
+  const sendMessage = useCallback((content: string) => {
+    if (!content.trim() || isThinking) return
 
-      setMessages(prev => [...prev, userMessage])
-      setIsThinking(true)
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: content.trim(),
+      thinking: false,
+      timestamp: new Date(),
+    }
 
-      // Simulated delay — replace with actual API call later
-      const delay = 1500 + Math.random() * 1000
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: MOCK_RESPONSES[Math.floor(Math.random() * MOCK_RESPONSES.length)],
-          timestamp: new Date(),
-        }
-        setMessages(prev => [...prev, aiMessage])
-        setIsThinking(false)
-      }, delay)
-    },
-    [isThinking]
-  )
+    // AI message added immediately as a placeholder — updated in-place when response arrives
+    const aiMessageId = crypto.randomUUID()
+    const aiPlaceholder: Message = {
+      id: aiMessageId,
+      role: 'assistant',
+      content: '',
+      thinking: true,
+      timestamp: new Date(),
+    }
+
+    setMessages(prev => [...prev, userMessage, aiPlaceholder])
+
+    // Replace with actual response — swap this setTimeout with an API call later
+    const delay = 1500 + Math.random() * 1000
+    setTimeout(() => {
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === aiMessageId
+            ? { ...m, content: MOCK_RESPONSE, thinking: false }
+            : m
+        )
+      )
+    }, delay)
+  }, [isThinking])
 
   return { messages, isThinking, sendMessage }
 }

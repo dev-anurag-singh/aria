@@ -4,5 +4,6 @@ export interface Message {
   id: string
   role: MessageRole
   content: string
+  thinking: boolean
   timestamp: Date
 }
