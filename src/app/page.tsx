@@ -27,7 +27,7 @@ export default function Page() {
           <ChatInput onSend={sendMessage} disabled={isThinking} />
         </>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center w-full pb-24">
+        <div className="flex flex-1 flex-col items-center justify-center w-full">
           <EmptyState />
           <ChatInput onSend={sendMessage} disabled={isThinking} />
         </div>
