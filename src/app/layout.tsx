@@ -11,6 +11,28 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: 'Aria',
   description: 'A clean, fast AI chat experience.',
+  icons: {
+    icon: [
+      { url: '/aria-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/aria-32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: { url: '/aria-apple-touch.png' },
+    shortcut: '/favicon.ico',
+  },
+  openGraph: {
+    title: 'Aria',
+    description: 'A clean, fast AI chat experience.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Aria',
+    description: 'A clean, fast AI chat experience.',
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ede9fe' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+  ],
 }
 
 export default function RootLayout({
