@@ -1,10 +1,23 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Message } from '@/types/chat'
+
+interface RateLimit {
+  limit: number
+  remaining: number
+}
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
+  const [rateLimit, setRateLimit] = useState<RateLimit>({ limit: 10, remaining: 10 })
+
+  useEffect(() => {
+    fetch('/api/chat')
+      .then(r => r.json())
+      .then(({ limit, remaining }) => setRateLimit({ limit, remaining }))
+  }, [])
+  const [rateLimitError, setRateLimitError] = useState(false)
   const charQueue = useRef('')
   const rafId = useRef<number | null>(null)
 
@@ -12,6 +25,8 @@ export function useChat() {
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isThinking) return
+
+    setRateLimitError(false)
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -44,10 +59,21 @@ export function useChat() {
       body: JSON.stringify({ messages: history }),
     })
 
+    const limitHeader = res.headers.get('X-RateLimit-Limit')
+    const remainingHeader = res.headers.get('X-RateLimit-Remaining')
+    if (limitHeader && remainingHeader) {
+      setRateLimit({ limit: Number(limitHeader), remaining: Number(remainingHeader) })
+    }
+
+    if (res.status === 429) {
+      setRateLimitError(true)
+      setMessages(prev => prev.filter(m => m.id !== aiMessageId))
+      return
+    }
+
     let firstChunk = true
     let streamDone = false
 
-    // Drains the queue 2 chars per animation frame for a smooth typing feel
     const flush = () => {
       if (charQueue.current.length > 0) {
         const chars = charQueue.current.slice(0, 2)
@@ -64,7 +90,6 @@ export function useChat() {
           prev.map(m => (m.id === aiMessageId ? { ...m, thinking: false } : m))
         )
       } else {
-        // Queue empty but stream still coming — RAF will restart on next chunk
         rafId.current = null
       }
     }
@@ -95,5 +120,5 @@ export function useChat() {
     }
   }, [messages, isThinking])
 
-  return { messages, isThinking, sendMessage }
+  return { messages, isThinking, sendMessage, rateLimit, rateLimitError }
 }

@@ -8,7 +8,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { EmptyState } from "@/components/chat/EmptyState";
 
 export default function Page() {
-  const { messages, isThinking, sendMessage } = useChat();
+  const { messages, isThinking, sendMessage, rateLimit, rateLimitError } = useChat();
   const hasMessages = messages.length > 0;
   const [scrolled, setScrolled] = useState(false);
 
@@ -32,13 +32,13 @@ export default function Page() {
             <MessageList messages={messages} />
           </div>
           <div className="sticky bottom-0 backdrop-blur-xl">
-            <ChatInput onSend={sendMessage} disabled={isThinking} />
+            <ChatInput onSend={sendMessage} disabled={isThinking} rateLimit={rateLimit} rateLimitError={rateLimitError} />
           </div>
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center w-full">
           <EmptyState />
-          <ChatInput onSend={sendMessage} disabled={isThinking} />
+          <ChatInput onSend={sendMessage} disabled={isThinking} rateLimit={rateLimit} rateLimitError={rateLimitError} />
         </div>
       )}
     </div>

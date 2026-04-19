@@ -7,12 +7,60 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+interface RateLimit {
+  limit: number;
+  remaining: number;
+}
+
 interface ChatInputProps {
   onSend: (content: string) => void;
   disabled: boolean;
+  rateLimit?: RateLimit;
+  rateLimitError?: boolean;
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+function UsageIndicator({ rateLimit }: { rateLimit?: RateLimit }) {
+  const used = rateLimit ? rateLimit.limit - rateLimit.remaining : 0;
+  const limit = rateLimit?.limit ?? 10;
+  const pct = used / limit;
+
+  const dotColor = pct === 0
+    ? "bg-emerald-400"
+    : pct < 0.5
+    ? "bg-emerald-400"
+    : pct < 0.8
+    ? "bg-amber-400"
+    : "bg-red-400";
+
+  const textColor = pct === 0
+    ? "text-emerald-500 dark:text-emerald-400"
+    : pct < 0.5
+    ? "text-emerald-500 dark:text-emerald-400"
+    : pct < 0.8
+    ? "text-amber-500 dark:text-amber-400"
+    : "text-red-500 dark:text-red-400";
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex gap-0.5">
+        {Array.from({ length: limit }).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "h-1 w-3 rounded-full transition-all duration-300",
+              i < used ? dotColor : "bg-black/10 dark:bg-white/10"
+            )}
+          />
+        ))}
+      </div>
+      <span className={cn("text-xs font-medium tabular-nums transition-colors duration-300", textColor)}>
+        {used}/{limit}
+      </span>
+    </div>
+  );
+}
+
+export function ChatInput({ onSend, disabled, rateLimit, rateLimitError }: ChatInputProps) {
   const [value, setValue] = useState("");
 
   const handleSend = () => {
@@ -47,7 +95,8 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           className="w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 min-h-0 px-4 pt-4 pb-2 text-base md:text-base leading-6 placeholder:text-muted-foreground/50 dark:bg-transparent disabled:bg-transparent dark:disabled:bg-transparent"
         />
 
-        <div className="flex justify-end px-3 pb-3">
+        <div className="flex items-center justify-between px-3 pb-3">
+          <UsageIndicator rateLimit={rateLimit} />
           <Button
             onClick={handleSend}
             disabled={!canSend}
@@ -65,8 +114,10 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         </div>
       </div>
 
-      <p className="text-center text-xs md:text-sm text-muted-foreground/40 mt-3">
-        Shift + Enter for new line · Refreshing clears your conversation
+      <p className="text-center text-xs md:text-sm mt-3 text-muted-foreground/40">
+        {rateLimitError
+          ? "You've reached the limit of 10 messages per hour. Try again later."
+          : "Shift + Enter for new line · Refreshing clears your conversation"}
       </p>
     </motion.div>
   );
